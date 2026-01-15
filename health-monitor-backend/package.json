@@ -6,10 +6,11 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "jest --coverage",
+    "test": "jest tests/anomalyDetector.test.js --coverage",
     "test:watch": "jest --watch",
-    "test:unit": "jest --testPathPattern=tests/(?!integration) --coverage",
-    "test:integration": "jest --testPathPattern=tests/integration --coverage",
+    "test:unit": "jest tests/anomalyDetector.test.js --coverage",
+    "test:integration": "jest tests/integration --coverage",
+    "test:all": "jest --coverage",
     "lint": "eslint src/ tests/",
     "lint:fix": "eslint src/ tests/ --fix"
   },

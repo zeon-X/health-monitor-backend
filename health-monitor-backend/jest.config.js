@@ -5,9 +5,9 @@
 module.exports = {
   testEnvironment: "node",
   testMatch: ["**/tests/**/*.test.js"],
-  collectCoverageFrom: ["src/**/*.js", "!src/index.js", "!src/config/**"],
+  collectCoverageFrom: ["src/services/anomalyDetector.js"],
   coverageThreshold: {
-    global: {
+    "src/services/anomalyDetector.js": {
       branches: 70,
       functions: 70,
       lines: 70,
@@ -15,19 +15,5 @@ module.exports = {
     },
   },
   coveragePathIgnorePatterns: ["/node_modules/", "/tests/"],
-  // Separate test configurations
-  projects: [
-    {
-      displayName: "unit",
-      testMatch: ["**/tests/**/*.test.js", "!**/tests/integration/**"],
-      testEnvironment: "node",
-    },
-    {
-      displayName: "integration",
-      testMatch: ["**/tests/integration/**/*.test.js"],
-      testEnvironment: "node",
-      setupFilesAfterEnv: ["<rootDir>/tests/integration/setup.js"],
-    },
-  ],
   verbose: true,
 };

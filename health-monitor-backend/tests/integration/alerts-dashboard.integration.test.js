@@ -26,6 +26,7 @@ describe("Alerts & Dashboard API Integration Tests", () => {
   // Database setup
   beforeAll(async () => {
     const mongoUri =
+      process.env.MONGODB_COMPLETE_URI ||
       process.env.MONGODB_URI ||
       "mongodb://localhost:27017/health-monitor-test";
     await mongoose.connect(mongoUri);
@@ -66,7 +67,7 @@ describe("Alerts & Dashboard API Integration Tests", () => {
 
         // Verify descending order (most recent first)
         const timestamps = response.body.map((a) =>
-          new Date(a.timestamp).getTime(),
+          new Date(a.timestamp).getTime()
         );
         for (let i = 1; i < timestamps.length; i++) {
           expect(timestamps[i]).toBeLessThanOrEqual(timestamps[i - 1]);
@@ -96,7 +97,7 @@ describe("Alerts & Dashboard API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/alerts/history?patientId=${PATIENTS[0].id}`,
+          `/api/alerts/history?patientId=${PATIENTS[0].id}`
         );
 
         expect(response.status).toBe(200);
@@ -269,7 +270,7 @@ describe("Alerts & Dashboard API Integration Tests", () => {
     describe("Error Cases", () => {
       test("should handle invalid limit parameter gracefully", async () => {
         const response = await request(app).get(
-          "/api/alerts/history?limit=invalid",
+          "/api/alerts/history?limit=invalid"
         );
 
         expect(response.status).toBe(200);
@@ -288,7 +289,7 @@ describe("Alerts & Dashboard API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          "/api/alerts/history?limit=-10",
+          "/api/alerts/history?limit=-10"
         );
 
         expect(response.status).toBe(200);
@@ -306,7 +307,7 @@ describe("Alerts & Dashboard API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          "/api/alerts/history?patientId=NON_EXISTENT",
+          "/api/alerts/history?patientId=NON_EXISTENT"
         );
 
         expect(response.status).toBe(200);
@@ -579,10 +580,10 @@ describe("Alerts & Dashboard API Integration Tests", () => {
 
         expect(response.status).toBe(200);
         expect(response.body.recentAnomalies[0].alerts[0].category).toBe(
-          "newest",
+          "newest"
         );
         expect(response.body.recentAnomalies[1].alerts[0].category).toBe(
-          "oldest",
+          "oldest"
         );
       });
 
@@ -603,7 +604,7 @@ describe("Alerts & Dashboard API Integration Tests", () => {
 
         expect(response.status).toBe(200);
         expect(response.body.latestVitals[0].patientName).toBe(
-          "Test Patient Name",
+          "Test Patient Name"
         );
       });
     });
@@ -615,7 +616,7 @@ describe("Alerts & Dashboard API Integration Tests", () => {
         expect(response.status).toBe(200);
         expect(response.body.timestamp).toBeDefined();
         expect(new Date(response.body.timestamp).toISOString()).toBe(
-          response.body.timestamp,
+          response.body.timestamp
         );
       });
     });
