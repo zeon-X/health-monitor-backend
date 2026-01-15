@@ -114,9 +114,8 @@ export default function PatientDetailPage() {
     );
   }
 
-  const latestVitals = vitalsHistory[vitalsHistory.length - 1];
+  // const latestVitals = vitalsHistory[vitalsHistory.length - 1];
   const activeAnomalies = anomalies.filter((a) => !a.acknowledged);
-  console.log("latestVitals", latestVitals);
 
   return (
     <div className="space-y-6">
@@ -210,40 +209,44 @@ export default function PatientDetailPage() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Time
-                </th>
-                <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Heart Rate
-                </th>
-                <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Blood Pressure
-                </th>
-                <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Temp (°C)
-                </th>
-                <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  SpO₂
-                </th>
-                <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Motion
-                </th>
-                <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {vitalsHistory
-                .slice(-20)
-                .reverse()
-                .map((record, idx) => {
-                  const hasAnomaly = anomalies.some(
-                    (a) => a.recordId === record?._id && !a.acknowledged
-                  );
+          <div className="max-h-[600px] overflow-y-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Time
+                  </th>
+                  <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Heart Rate
+                  </th>
+                  <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Blood Pressure
+                  </th>
+                  <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Temp (°C)
+                  </th>
+                  <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    SpO₂
+                  </th>
+                  <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Motion
+                  </th>
+                  <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Status
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {vitalsHistory?.map((record, idx) => {
+                  // Match anomalies by timestamp proximity (within 5 minutes)
+                  const recordTime = new Date(record?.recordedAt).getTime();
+                  const hasAnomaly = anomalies.some((a) => {
+                    if (a.acknowledged) return false;
+                    const anomalyTime = new Date(a.detectedAt).getTime();
+                    const timeDiff = Math.abs(recordTime - anomalyTime);
+                    return timeDiff < 5 * 60 * 1000; // 5 minutes in milliseconds
+                  });
+
                   return (
                     <tr
                       key={record?._id || idx}
@@ -251,8 +254,18 @@ export default function PatientDetailPage() {
                         idx === 0 ? "bg-blue-50" : "hover:bg-gray-50"
                       } transition-colors`}
                     >
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-900">
-                        {new Date(record?.recordedAt).toLocaleTimeString()}
+                      <td className="whitespace-nowrap flex px-4 py-3 text-sm text-gray-900">
+                        <div className="flex flex-col">
+                          <span>
+                            {new Date(record?.recordedAt).toLocaleTimeString()}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(record?.recordedAt).toLocaleDateString(
+                              "en-US",
+                              { month: "short", day: "numeric" }
+                            )}
+                          </span>
+                        </div>
                         {idx === 0 && (
                           <span className="ml-2 text-xs text-blue-600 font-medium">
                             Latest
@@ -305,8 +318,9 @@ export default function PatientDetailPage() {
                     </tr>
                   );
                 })}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
         {vitalsHistory.length === 0 && (
           <div className="px-6 py-12 text-center">
@@ -353,14 +367,14 @@ export default function PatientDetailPage() {
             color="#10b981"
             thresholds={{ min: patient.thresholds?.spo2?.min }}
           />
-          <VitalChart
+          {/* <VitalChart
             data={vitalsHistory}
             metric="bloodGlucose"
             title="Blood Glucose"
             unit="mg/dL"
             color="#8b5cf6"
             thresholds={patient.thresholds?.bloodGlucose}
-          />
+          /> */}
           <VitalChart
             data={vitalsHistory}
             metric="diastolic"

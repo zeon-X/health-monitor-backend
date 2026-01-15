@@ -50,6 +50,15 @@ export default function VitalChart({
       } else if (record.vitals?.bloodPressure) {
         value = record.vitals.bloodPressure[metric];
       }
+    } else if (metric === "temperature") {
+      // Backend uses 'bodyTemperature' not 'temperature'
+      value =
+        (record.bodyTemperature as number) ??
+        (record.vitals?.bodyTemperature as number) ??
+        (record.vitals?.temperature as number);
+    } else if (metric === "bloodGlucose") {
+      // Backend doesn't provide bloodGlucose - skip this chart or use placeholder
+      value = undefined;
     } else {
       // Try direct property first (backend format), then vitals nested (frontend format)
       value = (record[metric] as number) ?? (record.vitals?.[metric] as number);

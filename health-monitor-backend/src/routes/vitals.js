@@ -35,7 +35,7 @@ router.get("/:patientId/latest", async (req, res) => {
  */
 router.get("/:patientId/history", async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 100;
+    const limit = parseInt(req.query.limit) || 100000;
     const hours = parseInt(req.query.hours) || 24;
     const since = new Date(Date.now() - hours * 60 * 60 * 1000);
 
@@ -43,7 +43,7 @@ router.get("/:patientId/history", async (req, res) => {
       patientId: req.params.patientId,
       recordedAt: { $gte: since },
     })
-      .sort({ recordedAt: 1 })
+      .sort({ recordedAt: -1 })
       .limit(limit)
       .lean();
 
