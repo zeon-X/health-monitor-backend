@@ -33,13 +33,13 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         criticalVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.isAnomaly).toBe(true);
       expect(result.severity).toBe("critical");
       expect(result.alerts.some((a) => a.category === "bradycardia")).toBe(
-        true
+        true,
       );
     });
 
@@ -48,13 +48,13 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         criticalVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.isAnomaly).toBe(true);
       expect(result.severity).toBe("critical");
       expect(result.alerts.some((a) => a.category === "tachycardia")).toBe(
-        true
+        true,
       );
     });
 
@@ -63,7 +63,7 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         criticalVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.isAnomaly).toBe(true);
@@ -76,13 +76,13 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         criticalVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.isAnomaly).toBe(true);
       expect(result.severity).toBe("critical");
       expect(
-        result.alerts.some((a) => a.category === "hypertensive_crisis")
+        result.alerts.some((a) => a.category === "hypertensive_crisis"),
       ).toBe(true);
     });
 
@@ -91,7 +91,7 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         criticalVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.isAnomaly).toBe(true);
@@ -103,13 +103,13 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         criticalVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.isAnomaly).toBe(true);
       expect(result.severity).toBe("critical");
       expect(result.alerts.some((a) => a.category === "hypothermia")).toBe(
-        true
+        true,
       );
     });
   });
@@ -120,13 +120,13 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         fallVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.isAnomaly).toBe(true);
       expect(result.severity).toBe("critical");
       expect(result.alerts.some((a) => a.category === "fall_detected")).toBe(
-        true
+        true,
       );
     });
 
@@ -134,10 +134,10 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         normalVitals,
-        testPatient
+        testPatient,
       );
       const fallAlert = result.alerts.find(
-        (a) => a.category === "fall_detected"
+        (a) => a.category === "fall_detected",
       );
 
       expect(fallAlert).toBeUndefined();
@@ -156,7 +156,7 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         abnormalVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.alerts.some((a) => a.category === "hr_anomaly")).toBe(true);
@@ -173,11 +173,11 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         decliningVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.alerts.some((a) => a.category === "spo2_declining")).toBe(
-        true
+        true,
       );
     });
   });
@@ -196,7 +196,7 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         inactiveVitals,
-        testPatient
+        testPatient,
       );
 
       // May or may not detect depending on time of day
@@ -263,7 +263,7 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         multiAnomalyVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.isAnomaly).toBe(true);
@@ -277,7 +277,7 @@ describe("AnomalyDetector", () => {
       const result = detector.detectAnomalies(
         testPatient.id,
         normalVitals,
-        testPatient
+        testPatient,
       );
 
       expect(result.isAnomaly).toBe(false);

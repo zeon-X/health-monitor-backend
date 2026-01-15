@@ -41,7 +41,10 @@ GET /api/patients/:patientId/vitals/history    # History (24h default)
 GET /api/anomalies/active                      # Unacknowledged alerts
 GET /api/patients/:patientId/anomalies         # Patient anomalies
 POST /api/anomalies/:anomalyId/acknowledge     # Mark alert reviewed
+POST /api/anomalies/retrospective              # 🆕 Detect missed anomalies
 ```
+
+**New: Retrospective Anomaly Detection** - Re-analyze historical health records to detect anomalies missed by previous thresholds. Useful after system upgrades or threshold changes. [Learn more →](./docs/RETROSPECTIVE_DETECTION.md)
 
 ### Dashboard
 

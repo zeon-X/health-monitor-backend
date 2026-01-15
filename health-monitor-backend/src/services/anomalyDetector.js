@@ -358,6 +358,244 @@ class AnomalyDetector {
     delete this.dataWindow[patientId];
     delete this.anomalyHistory[patientId];
   }
+
+  /**
+   * Retrospective Anomaly Detection
+   * Re-analyzes historical health records to detect missed anomalies
+   * Useful after system upgrades or threshold changes
+   *
+   * @param {Object} options - Detection options
+   * @param {string|null} options.patientId - Specific patient ID or null for all patients
+   * @param {Date|null} options.startDate - Start date for analysis or null for all records
+   * @param {Date|null} options.endDate - End date for analysis or null to present
+   * @param {boolean} options.updateDatabase - Whether to save newly detected anomalies
+   * @returns {Promise<Object>} Results including detected anomalies and statistics
+   */
+  async detectRetrospectiveAnomalies(options = {}) {
+    const {
+      patientId = null,
+      startDate = null,
+      endDate = null,
+      updateDatabase = true,
+    } = options;
+
+    if (!this.HealthRecord) {
+      throw new Error("HealthRecord model not injected");
+    }
+
+    const { Patient, Anomaly, AlertLog } = require("../models");
+    const results = {
+      processed: 0,
+      newAnomaliesDetected: 0,
+      criticalCount: 0,
+      warningCount: 0,
+      patientsSummary: {},
+      errors: [],
+    };
+
+    try {
+      // Build query for health records
+      const query = {};
+      if (patientId) {
+        query.patientId = patientId;
+      }
+      if (startDate || endDate) {
+        query.recordedAt = {};
+        if (startDate) {
+          query.recordedAt.$gte = startDate;
+        }
+        if (endDate) {
+          query.recordedAt.$lte = endDate;
+        }
+      }
+
+      // Get patients to process
+      const patientQuery = patientId ? { patientId } : { isActive: true };
+      const patients = await Patient.find(patientQuery).lean();
+
+      if (patients.length === 0) {
+        return results;
+      }
+
+      // Create patient lookup map for faster access
+      const patientMap = {};
+      patients.forEach((p) => {
+        patientMap[p.patientId] = p;
+      });
+
+      // Fetch health records
+      const healthRecords = await this.HealthRecord.find(query)
+        .sort({ recordedAt: 1 })
+        .lean();
+
+      console.log(
+        `🔍 Retrospective Analysis: Processing ${healthRecords.length} records for ${patients.length} patient(s)`,
+      );
+
+      // Get existing anomalies to avoid duplicates
+      const existingAnomaliesQuery = { ...query };
+      if (query.recordedAt) {
+        existingAnomaliesQuery.detectedAt = query.recordedAt;
+        delete existingAnomaliesQuery.recordedAt;
+      }
+      const existingAnomalies = await Anomaly.find(
+        existingAnomaliesQuery,
+      ).lean();
+
+      // Create a set of existing anomaly timestamps per patient for deduplication
+      const existingAnomalySet = new Set();
+      existingAnomalies.forEach((a) => {
+        // Create unique key: patientId + timestamp (rounded to minute)
+        const timestamp = new Date(a.detectedAt).setSeconds(0, 0);
+        existingAnomalySet.add(`${a.patientId}-${timestamp}`);
+      });
+
+      // Group records by patient
+      const recordsByPatient = {};
+      healthRecords.forEach((record) => {
+        if (!recordsByPatient[record.patientId]) {
+          recordsByPatient[record.patientId] = [];
+        }
+        recordsByPatient[record.patientId].push(record);
+      });
+
+      // Process each patient's records
+      for (const [pid, records] of Object.entries(recordsByPatient)) {
+        const patient = patientMap[pid];
+        if (!patient) {
+          results.errors.push(`Patient ${pid} not found in database`);
+          continue;
+        }
+
+        results.patientsSummary[pid] = {
+          patientName: patient.name,
+          recordsProcessed: records.length,
+          newAnomalies: 0,
+          criticalAnomalies: 0,
+          warningAnomalies: 0,
+        };
+
+        // Reset detector state for this patient
+        this.resetPatient(pid);
+
+        // Load some historical context (if available)
+        const contextRecords = await this.HealthRecord.find({
+          patientId: pid,
+          recordedAt: { $lt: records[0].recordedAt },
+        })
+          .sort({ recordedAt: -1 })
+          .limit(50)
+          .lean();
+
+        // Add context to window
+        contextRecords.reverse().forEach((record) => {
+          this.addToWindow(pid, {
+            heartRate: record.heartRate,
+            bloodPressure: record.bloodPressure,
+            spo2: record.spo2,
+            bodyTemperature: record.bodyTemperature,
+            motionLevel: record.motionLevel,
+            fallRiskScore: record.fallRiskScore,
+            timestamp: record.recordedAt,
+          });
+        });
+
+        // Process each record
+        for (const record of records) {
+          results.processed++;
+
+          const vitals = {
+            heartRate: record.heartRate,
+            bloodPressure: record.bloodPressure,
+            spo2: record.spo2,
+            bodyTemperature: record.bodyTemperature,
+            motionLevel: record.motionLevel,
+            fallRiskScore: record.fallRiskScore,
+            timestamp: record.recordedAt,
+          };
+
+          // Detect anomalies using current thresholds
+          const detection = this.detectAnomalies(pid, vitals, patient);
+
+          if (detection.isAnomaly) {
+            // Check if this anomaly already exists
+            const timestamp = new Date(record.recordedAt).setSeconds(0, 0);
+            const anomalyKey = `${pid}-${timestamp}`;
+
+            if (!existingAnomalySet.has(anomalyKey)) {
+              results.newAnomaliesDetected++;
+              results.patientsSummary[pid].newAnomalies++;
+
+              if (detection.severity === "critical") {
+                results.criticalCount++;
+                results.patientsSummary[pid].criticalAnomalies++;
+              } else if (detection.severity === "warning") {
+                results.warningCount++;
+                results.patientsSummary[pid].warningAnomalies++;
+              }
+
+              // Save to database if requested
+              if (updateDatabase) {
+                try {
+                  // Create Anomaly record
+                  const anomaly = await Anomaly.create({
+                    patientId: pid,
+                    severity: detection.severity,
+                    detectedAt: record.recordedAt,
+                    alerts: detection.alerts,
+                    acknowledged: false,
+                    metadata: {
+                      retrospective: true,
+                      detectionDate: new Date(),
+                      anomalyScore: detection.normalizedScore,
+                    },
+                  });
+
+                  // Create AlertLog entries
+                  const alertLogs = detection.alerts.map((alert) => ({
+                    patientId: pid,
+                    type: alert.type,
+                    category: alert.category,
+                    message: alert.message,
+                    value: alert.value,
+                    threshold: patient.alertThresholds,
+                    timestamp: record.recordedAt,
+                    metadata: {
+                      retrospective: true,
+                      anomalyId: anomaly._id,
+                    },
+                  }));
+
+                  if (alertLogs.length > 0) {
+                    await AlertLog.insertMany(alertLogs);
+                  }
+
+                  // Add to set to prevent duplicates in the same run
+                  existingAnomalySet.add(anomalyKey);
+                } catch (error) {
+                  results.errors.push(
+                    `Error saving anomaly for ${pid} at ${record.recordedAt}: ${error.message}`,
+                  );
+                }
+              }
+            }
+          }
+        }
+
+        // Clean up detector state
+        this.resetPatient(pid);
+      }
+
+      console.log(
+        `✅ Retrospective Analysis Complete: ${results.newAnomaliesDetected} new anomalies detected`,
+      );
+    } catch (error) {
+      console.error("❌ Retrospective Detection Error:", error);
+      results.errors.push(error.message);
+    }
+
+    return results;
+  }
 }
 
 module.exports = AnomalyDetector;

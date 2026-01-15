@@ -10,6 +10,7 @@ const socketIo = require("socket.io");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const apiRoutes = require("./routes/api");
+const anomaliesRoutes = require("./routes/anomalies");
 const HealthMonitoringService = require("./services/healthMonitoringService");
 
 const app = express();
@@ -51,6 +52,7 @@ const healthService = new HealthMonitoringService(io);
 
 // Routes
 app.use("/api", apiRoutes);
+app.use("/api/anomalies", anomaliesRoutes);
 
 // WebSocket Events
 io.on("connection", (socket) => {

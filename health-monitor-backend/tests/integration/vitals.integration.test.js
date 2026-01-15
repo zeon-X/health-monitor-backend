@@ -51,7 +51,7 @@ describe("Vitals API Integration Tests", () => {
         await HealthRecord.create(testRecord);
 
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[0].id}/latest`
+          `/api/vitals/${PATIENTS[0].id}/latest`,
         );
 
         expect(response.status).toBe(200);
@@ -85,7 +85,7 @@ describe("Vitals API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/vitals/${patientId}/latest`
+          `/api/vitals/${patientId}/latest`,
         );
 
         expect(response.status).toBe(200);
@@ -99,7 +99,7 @@ describe("Vitals API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[3].id}/latest`
+          `/api/vitals/${PATIENTS[3].id}/latest`,
         );
 
         expect(response.status).toBe(200);
@@ -116,7 +116,7 @@ describe("Vitals API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[0].id}/latest`
+          `/api/vitals/${PATIENTS[0].id}/latest`,
         );
 
         expect(response.status).toBe(200);
@@ -130,7 +130,7 @@ describe("Vitals API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[1].id}/latest`
+          `/api/vitals/${PATIENTS[1].id}/latest`,
         );
 
         expect(response.status).toBe(200);
@@ -144,7 +144,7 @@ describe("Vitals API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[2].id}/latest`
+          `/api/vitals/${PATIENTS[2].id}/latest`,
         );
 
         expect(response.status).toBe(200);
@@ -160,7 +160,7 @@ describe("Vitals API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[0].id}/latest`
+          `/api/vitals/${PATIENTS[0].id}/latest`,
         );
 
         expect(response.status).toBe(200);
@@ -174,7 +174,7 @@ describe("Vitals API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[2].id}/latest`
+          `/api/vitals/${PATIENTS[2].id}/latest`,
         );
 
         expect(response.status).toBe(200);
@@ -190,7 +190,7 @@ describe("Vitals API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[1].id}/latest`
+          `/api/vitals/${PATIENTS[1].id}/latest`,
         );
 
         expect(response.status).toBe(200);
@@ -204,7 +204,7 @@ describe("Vitals API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[0].id}/latest`
+          `/api/vitals/${PATIENTS[0].id}/latest`,
         );
 
         expect(response.status).toBe(200);
@@ -215,7 +215,7 @@ describe("Vitals API Integration Tests", () => {
     describe("Error Cases", () => {
       test("should return 404 when no vitals exist for patient", async () => {
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[0].id}/latest`
+          `/api/vitals/${PATIENTS[0].id}/latest`,
         );
 
         expect(response.status).toBe(404);
@@ -225,7 +225,7 @@ describe("Vitals API Integration Tests", () => {
 
       test("should return 404 for non-existent patient ID", async () => {
         const response = await request(app).get(
-          "/api/vitals/nonexistent-patient-id/latest"
+          "/api/vitals/nonexistent-patient-id/latest",
         );
 
         expect(response.status).toBe(404);
@@ -248,7 +248,7 @@ describe("Vitals API Integration Tests", () => {
         await HealthRecord.insertMany(records);
 
         const response = await request(app).get(
-          `/api/vitals/${patientId}/history`
+          `/api/vitals/${patientId}/history`,
         );
 
         expect(response.status).toBe(200);
@@ -274,7 +274,7 @@ describe("Vitals API Integration Tests", () => {
         await HealthRecord.insertMany(records);
 
         const response = await request(app).get(
-          `/api/vitals/${patientId}/history?limit=20`
+          `/api/vitals/${patientId}/history?limit=20`,
         );
 
         expect(response.status).toBe(200);
@@ -309,7 +309,7 @@ describe("Vitals API Integration Tests", () => {
 
         // Query for last 3 hours only
         const response = await request(app).get(
-          `/api/vitals/${patientId}/history?hours=3`
+          `/api/vitals/${patientId}/history?hours=3`,
         );
 
         expect(response.status).toBe(200);
@@ -319,7 +319,7 @@ describe("Vitals API Integration Tests", () => {
 
       test("should return empty array when no history exists", async () => {
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[3].id}/history`
+          `/api/vitals/${PATIENTS[3].id}/history`,
         );
 
         expect(response.status).toBe(200);
@@ -340,7 +340,7 @@ describe("Vitals API Integration Tests", () => {
         await HealthRecord.insertMany(records);
 
         const response = await request(app).get(
-          `/api/vitals/${patientId}/history`
+          `/api/vitals/${patientId}/history`,
         );
 
         expect(response.status).toBe(200);
@@ -358,7 +358,7 @@ describe("Vitals API Integration Tests", () => {
         await HealthRecord.insertMany(records);
 
         const response = await request(app).get(
-          `/api/vitals/${patientId}/history`
+          `/api/vitals/${patientId}/history`,
         );
 
         expect(response.status).toBe(200);
@@ -382,7 +382,7 @@ describe("Vitals API Integration Tests", () => {
         ]);
 
         const response = await request(app).get(
-          `/api/vitals/${patientId}/history?limit=1`
+          `/api/vitals/${patientId}/history?limit=1`,
         );
 
         expect(response.status).toBe(200);
@@ -405,7 +405,7 @@ describe("Vitals API Integration Tests", () => {
         });
 
         const response = await request(app).get(
-          `/api/vitals/${patientId}/history?hours=1`
+          `/api/vitals/${patientId}/history?hours=1`,
         );
 
         expect(response.status).toBe(200);
@@ -423,7 +423,7 @@ describe("Vitals API Integration Tests", () => {
         await HealthRecord.insertMany(records);
 
         const response = await request(app).get(
-          `/api/vitals/${patientId}/history?limit=20`
+          `/api/vitals/${patientId}/history?limit=20`,
         );
 
         expect(response.status).toBe(200);
@@ -431,7 +431,7 @@ describe("Vitals API Integration Tests", () => {
 
         // Verify order (should be chronologically sorted)
         const timestamps = response.body.records.map((r) =>
-          new Date(r.recordedAt).getTime()
+          new Date(r.recordedAt).getTime(),
         );
         for (let i = 1; i < timestamps.length; i++) {
           expect(timestamps[i]).toBeGreaterThanOrEqual(timestamps[i - 1]);
@@ -448,7 +448,7 @@ describe("Vitals API Integration Tests", () => {
         await HealthRecord.insertMany(sparseRecords);
 
         const response = await request(app).get(
-          `/api/vitals/${patientId}/history?hours=24`
+          `/api/vitals/${patientId}/history?hours=24`,
         );
 
         expect(response.status).toBe(200);
@@ -465,7 +465,7 @@ describe("Vitals API Integration Tests", () => {
         await HealthRecord.insertMany(denseRecords);
 
         const response = await request(app).get(
-          `/api/vitals/${patientId}/history?hours=2&limit=100`
+          `/api/vitals/${patientId}/history?hours=2&limit=100`,
         );
 
         expect(response.status).toBe(200);
@@ -476,7 +476,7 @@ describe("Vitals API Integration Tests", () => {
     describe("Error Cases", () => {
       test("should handle invalid limit parameter (non-numeric)", async () => {
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[0].id}/history?limit=invalid`
+          `/api/vitals/${PATIENTS[0].id}/history?limit=invalid`,
         );
 
         expect(response.status).toBe(200);
@@ -486,7 +486,7 @@ describe("Vitals API Integration Tests", () => {
 
       test("should handle invalid hours parameter (non-numeric)", async () => {
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[1].id}/history?hours=invalid`
+          `/api/vitals/${PATIENTS[1].id}/history?hours=invalid`,
         );
 
         expect(response.status).toBe(200);
@@ -496,7 +496,7 @@ describe("Vitals API Integration Tests", () => {
 
       test("should handle extremely large limit gracefully", async () => {
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[2].id}/history?limit=999999`
+          `/api/vitals/${PATIENTS[2].id}/history?limit=999999`,
         );
 
         expect(response.status).toBe(200);
@@ -505,7 +505,7 @@ describe("Vitals API Integration Tests", () => {
 
       test("should handle negative parameters", async () => {
         const response = await request(app).get(
-          `/api/vitals/${PATIENTS[3].id}/history?limit=-50&hours=-10`
+          `/api/vitals/${PATIENTS[3].id}/history?limit=-50&hours=-10`,
         );
 
         expect(response.status).toBe(200);
@@ -527,11 +527,11 @@ describe("Vitals API Integration Tests", () => {
       await HealthRecord.insertMany(records);
 
       const latestResponse = await request(app).get(
-        `/api/vitals/${patientId}/latest`
+        `/api/vitals/${patientId}/latest`,
       );
 
       const historyResponse = await request(app).get(
-        `/api/vitals/${patientId}/history?limit=1`
+        `/api/vitals/${patientId}/history?limit=1`,
       );
 
       expect(latestResponse.status).toBe(200);
