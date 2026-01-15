@@ -18,7 +18,7 @@ const healthRecordSchema = new mongoose.Schema(
     httpbinResponse: mongoose.Schema.Types.Mixed, // Store httpbin response data
     recordedAt: { type: Date, default: Date.now, index: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("HealthRecord", healthRecordSchema);

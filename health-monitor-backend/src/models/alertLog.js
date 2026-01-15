@@ -14,7 +14,7 @@ const alertLogSchema = new mongoose.Schema(
     actionTaken: String,
     timestamp: { type: Date, default: Date.now, index: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("AlertLog", alertLogSchema);

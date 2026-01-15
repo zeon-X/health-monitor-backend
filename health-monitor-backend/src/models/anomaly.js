@@ -28,7 +28,7 @@ const anomalySchema = new mongoose.Schema(
     acknowledgedAt: Date,
     detectedAt: { type: Date, default: Date.now, index: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Anomaly", anomalySchema);

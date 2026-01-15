@@ -14,7 +14,7 @@ const dashboardSummarySchema = new mongoose.Schema(
     recentAnomalies: [mongoose.Schema.Types.Mixed],
     lastUpdate: { type: Date, default: Date.now },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("DashboardSummary", dashboardSummarySchema);

@@ -62,7 +62,7 @@ class HealthMonitoringService {
       for (const patientData of PATIENTS) {
         // Check if patient exists
         const existingPatient = await Patient.findOne({ patientId: patientData.id });
-        
+
         if (!existingPatient) {
           // Create new patient
           await Patient.create(patientData);
@@ -95,7 +95,7 @@ class HealthMonitoringService {
     console.log(
       `📊 [${new Date().toISOString()}] Performing health check for ${
         PATIENTS.length
-      } patients...`
+      } patients...`,
     );
 
     for (const patient of PATIENTS) {
@@ -110,7 +110,7 @@ class HealthMonitoringService {
         const healthRecord = await this.saveHealthRecord(
           patient,
           vitals,
-          httpbinResponse
+          httpbinResponse,
         );
 
         // 4. Detect anomalies (with error handling for insufficient data)
@@ -119,11 +119,11 @@ class HealthMonitoringService {
           anomalyResult = this.anomalyDetector.detectAnomalies(
             patient.id,
             vitals,
-            patient
+            patient,
           );
         } catch (anomalyError) {
           console.warn(
-            `⚠️ Anomaly detection skipped for ${patient.id}: ${anomalyError.message}`
+            `⚠️ Anomaly detection skipped for ${patient.id}: ${anomalyError.message}`,
           );
           anomalyResult = {
             isAnomaly: false,
@@ -146,12 +146,12 @@ class HealthMonitoringService {
             vitals.bloodPressure
           }, SpO₂=${vitals.spo2}%${
             anomalyResult.isAnomaly ? " ⚠️ ANOMALY DETECTED" : ""
-          }`
+          }`,
         );
       } catch (error) {
         console.error(
           `❌ Error processing patient ${patient.id}:`,
-          error.message
+          error.message,
         );
       }
     }
@@ -248,7 +248,9 @@ class HealthMonitoringService {
    * Broadcast vital update via WebSocket
    */
   broadcastVitalUpdate(patientId, vitals, anomalyResult) {
-    if (!this.io) return;
+    if (!this.io) {
+      return;
+    }
 
     this.io.emit("vital_update", {
       patientId,
@@ -262,7 +264,9 @@ class HealthMonitoringService {
    * Broadcast anomaly alert via WebSocket
    */
   broadcastAnomaly(patientId, anomalyResult) {
-    if (!this.io) return;
+    if (!this.io) {
+      return;
+    }
 
     const patient = PATIENTS.find((p) => p.id === patientId);
 

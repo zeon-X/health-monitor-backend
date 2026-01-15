@@ -64,7 +64,7 @@ router.post("/:anomalyId/acknowledge", async (req, res) => {
         acknowledgedBy,
         acknowledgedAt: new Date(),
       },
-      { new: true }
+      { new: true },
     );
 
     if (!anomaly) {

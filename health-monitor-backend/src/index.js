@@ -11,7 +11,6 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const apiRoutes = require("./routes/api");
 const HealthMonitoringService = require("./services/healthMonitoringService");
-const { error } = require("console");
 
 const app = express();
 const server = http.createServer(app);
@@ -31,7 +30,7 @@ app.use(express.json());
 const mongoUri =
   process.env.MONGODB_URI?.replace(
     "${DB_PASSWORD}",
-    process.env.DB_PASSWORD || ""
+    process.env.DB_PASSWORD || "",
   ) || "mongodb://localhost:27017/health-monitor";
 
 mongoose
@@ -82,9 +81,11 @@ io.on("connection", (socket) => {
 });
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error(err.stack);
-  res.status(500).json({ error: "Internal server error", error: err.message });
+  res
+    .status(500)
+    .json({ error: "Internal server error", message: err.message });
 });
 
 // Start Server

@@ -25,7 +25,7 @@ class AnomalyDetector {
   async loadHistoricalData(patientId) {
     if (!this.HealthRecord) {
       console.warn(
-        "⚠️ HealthRecord model not injected, skipping historical data load"
+        "⚠️ HealthRecord model not injected, skipping historical data load",
       );
       return;
     }
@@ -63,12 +63,12 @@ class AnomalyDetector {
       }
 
       console.log(
-        `✅ Loaded ${records.length} historical records for ${patientId}`
+        `✅ Loaded ${records.length} historical records for ${patientId}`,
       );
     } catch (error) {
       console.error(
         `❌ Error loading historical data for ${patientId}:`,
-        error.message
+        error.message,
       );
     }
   }
@@ -163,7 +163,8 @@ class AnomalyDetector {
    */
   checkCriticalVitals(vitals, patient) {
     const alerts = [];
-    const { alertThresholds, baselineVitals } = patient;
+    const { alertThresholds } = patient;
+    // baselineVitals available if needed for future use
 
     // Heart Rate
     if (vitals.heartRate < alertThresholds.hrCritical[0]) {
@@ -183,7 +184,7 @@ class AnomalyDetector {
     }
 
     // Blood Pressure
-    const [systolic, diastolic] = vitals.bloodPressure
+    const [systolic, _diastolic] = vitals.bloodPressure
       .split("/")
       .map((x) => parseInt(x));
 
@@ -240,14 +241,16 @@ class AnomalyDetector {
     const alerts = [];
     const window = this.dataWindow[patientId];
 
-    if (!window || window.length < 12) return alerts; // Need at least 1 hour of data
+    if (!window || window.length < 12) {
+      return alerts;
+    } // Need at least 1 hour of data
 
     // Calculate z-score for HR
     const hrValues = window.map((v) => v.heartRate);
     const hrMean = hrValues.reduce((a, b) => a + b) / hrValues.length;
     const hrStd = Math.sqrt(
       hrValues.reduce((sum, v) => sum + Math.pow(v - hrMean, 2), 0) /
-        hrValues.length
+        hrValues.length,
     );
     const hrZScore = (currentVitals.heartRate - hrMean) / (hrStd || 1);
 
@@ -271,7 +274,7 @@ class AnomalyDetector {
         type: "warning",
         category: "spo2_declining",
         message: `⚠️ DECLINING SpO₂: Down ${Math.abs(spo2Trend).toFixed(
-          1
+          1,
         )}% in last hour`,
         value: spo2Trend,
       });
@@ -287,7 +290,9 @@ class AnomalyDetector {
     const alerts = [];
     const window = this.dataWindow[patientId];
 
-    if (!window || window.length < 6) return alerts; // Need at least 30 min of data
+    if (!window || window.length < 6) {
+      return alerts;
+    } // Need at least 30 min of data
 
     const recentMotion = window.slice(-6).map((v) => v.motionLevel);
     const avgRecentMotion =
@@ -304,7 +309,8 @@ class AnomalyDetector {
         alerts.push({
           type: "warning",
           category: "sustained_inactivity",
-          message: `⚠️ SUSTAINED INACTIVITY: No movement for > 1 hour during active hours`,
+          message:
+            "⚠️ SUSTAINED INACTIVITY: No movement for > 1 hour during active hours",
           value: avgRecentMotion,
         });
       }
@@ -319,7 +325,8 @@ class AnomalyDetector {
         alerts.push({
           type: "warning",
           category: "nocturnal_activity",
-          message: `⚠️ NOCTURNAL WANDERING: Unusual activity during night hours`,
+          message:
+            "⚠️ NOCTURNAL WANDERING: Unusual activity during night hours",
           value: nightActivityCount,
         });
       }
@@ -333,7 +340,9 @@ class AnomalyDetector {
    * Higher = more severe/concerning
    */
   calculateAnomalyScore(alerts) {
-    if (alerts.length === 0) return 0;
+    if (alerts.length === 0) {
+      return 0;
+    }
 
     const criticalCount = alerts.filter((a) => a.type === "critical").length;
     const warningCount = alerts.filter((a) => a.type === "warning").length;

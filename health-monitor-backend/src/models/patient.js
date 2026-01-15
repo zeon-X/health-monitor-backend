@@ -17,7 +17,7 @@ const patientSchema = new mongoose.Schema(
     alertThresholds: mongoose.Schema.Types.Mixed,
     isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Patient", patientSchema);

@@ -43,7 +43,9 @@ class HealthDataGenerator {
    */
   generateVitals(patientId) {
     const patient = PATIENTS.find((p) => p.id === patientId);
-    if (!patient) throw new Error(`Patient ${patientId} not found`);
+    if (!patient) {
+      throw new Error(`Patient ${patientId} not found`);
+    }
 
     const lastVitals = this.lastValues[patientId];
     const baseline = patient.baselineVitals;
@@ -51,35 +53,35 @@ class HealthDataGenerator {
     // Heart Rate: Gaussian distribution around baseline with memory
     const hrChange = (Math.random() - 0.5) * 8; // ±4 bpm change
     let hr = Math.round(
-      lastVitals.hr * 0.85 + (baseline.hr.normal + hrChange) * 0.15
+      lastVitals.hr * 0.85 + (baseline.hr.normal + hrChange) * 0.15,
     );
     hr = Math.max(baseline.hr.min - 5, Math.min(baseline.hr.max + 10, hr));
 
     // Blood Pressure: Correlated with HR and time of day
     const bpVariation = Math.random() < 0.15 ? Math.random() * 20 - 10 : 0; // 15% chance of spike
     let systolic = Math.round(
-      lastVitals.systolic * 0.8 + (baseline.systolic.normal + bpVariation) * 0.2
+      lastVitals.systolic * 0.8 + (baseline.systolic.normal + bpVariation) * 0.2,
     );
     systolic = Math.max(
       baseline.systolic.min - 10,
-      Math.min(baseline.systolic.max + 20, systolic)
+      Math.min(baseline.systolic.max + 20, systolic),
     );
 
     // Diastolic correlates with systolic
     const diastolicBase =
       baseline.diastolic.normal + (systolic - baseline.systolic.normal) * 0.3;
     let diastolic = Math.round(
-      lastVitals.diastolic * 0.8 + diastolicBase * 0.2
+      lastVitals.diastolic * 0.8 + diastolicBase * 0.2,
     );
     diastolic = Math.max(
       baseline.diastolic.min,
-      Math.min(baseline.diastolic.max, diastolic)
+      Math.min(baseline.diastolic.max, diastolic),
     );
 
     // SpO2: Usually stable, but drops with activity
     const activityEffect = this.lastValues[patientId].motionLevel * 2;
     let spo2 = Math.round(
-      lastVitals.spo2 * 0.95 + (baseline.spo2.normal - activityEffect) * 0.05
+      lastVitals.spo2 * 0.95 + (baseline.spo2.normal - activityEffect) * 0.05,
     );
     spo2 = Math.max(baseline.spo2.min - 5, Math.min(baseline.spo2.max, spo2));
 
@@ -98,7 +100,9 @@ class HealthDataGenerator {
     let motionLevel = isNight ? Math.random() * 0.3 : Math.random() * 0.8;
 
     // 10% chance of sudden activity (getting up, walking)
-    if (Math.random() < 0.1) motionLevel = Math.random() * 1.0;
+    if (Math.random() < 0.1) {
+      motionLevel = Math.random() * 1.0;
+    }
 
     // Smooth transition
     motionLevel = lastVitals.motionLevel * 0.7 + motionLevel * 0.3;
