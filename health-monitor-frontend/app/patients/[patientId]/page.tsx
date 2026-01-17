@@ -1,7 +1,12 @@
 "use client";
 
 import VitalChart from "@/components/dashboard/VitalChart";
-import { getPatient, getPatientAnomalies, getVitalsHistory } from "@/lib/api";
+import {
+  acknowledgeAnomaly,
+  getPatient,
+  getPatientAnomalies,
+  getVitalsHistory,
+} from "@/lib/api";
 import { initializeSocket } from "@/lib/socket";
 import { Anomaly, HealthRecord, Patient } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
@@ -116,6 +121,17 @@ export default function PatientDetailPage() {
 
   // const latestVitals = vitalsHistory[vitalsHistory.length - 1];
   const activeAnomalies = anomalies.filter((a) => !a.acknowledged);
+  console.log(activeAnomalies);
+
+  const handleAcknowledge = async (anomalyId: string) => {
+    try {
+      await acknowledgeAnomaly(anomalyId);
+      // Refresh data
+      fetchData();
+    } catch (err) {
+      console.error("Failed to acknowledge anomaly:", err);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -151,11 +167,19 @@ export default function PatientDetailPage() {
           </div>
           <div>
             {activeAnomalies.length > 0 ? (
-              <span className="inline-flex items-center gap-2 rounded-full bg-red-100 px-4 py-2 text-sm font-medium text-red-700">
+              <button
+                onClick={() => {
+                  document.getElementById("anomaly-history")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }}
+                className="inline-flex items-center gap-2 rounded-full bg-red-100 px-4 py-2 text-sm font-medium text-red-700 transition-all hover:bg-red-200 hover:shadow-md cursor-pointer"
+              >
                 <span className="h-2 w-2 animate-pulse rounded-full bg-red-500"></span>
                 {activeAnomalies.length} Active Alert
                 {activeAnomalies.length > 1 ? "s" : ""}
-              </span>
+              </button>
             ) : (
               <span className="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-700">
                 <span className="h-2 w-2 rounded-full bg-green-500"></span>
@@ -165,27 +189,41 @@ export default function PatientDetailPage() {
           </div>
         </div>
 
-        {/* Contact Info */}
-        <div className="mt-6 grid gap-4 border-t border-gray-200 pt-4 sm:grid-cols-3">
+        {/* Patient Details */}
+        <div className="mt-6 grid gap-4 border-t border-gray-200 pt-4 sm:grid-cols-2">
           <div>
-            <p className="text-xs font-medium text-gray-500">Phone</p>
-            <p className="mt-1 text-sm text-gray-900">
-              {patient.contactInfo?.phone || "N/A"}
-            </p>
+            <p className="text-xs font-medium text-gray-500">Medications</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {patient.medications && patient.medications.length > 0 ? (
+                patient.medications.map((med, idx) => (
+                  <span
+                    key={idx}
+                    className="rounded bg-purple-100 px-2 py-1 text-xs text-purple-800"
+                  >
+                    {med}
+                  </span>
+                ))
+              ) : (
+                <p className="text-sm text-gray-400">None listed</p>
+              )}
+            </div>
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-500">Email</p>
-            <p className="mt-1 text-sm text-gray-900">
-              {patient.contactInfo?.email || "N/A"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-gray-500">
-              Emergency Contact
-            </p>
-            <p className="mt-1 text-sm text-gray-900">
-              {patient.contactInfo?.emergencyContact || "N/A"}
-            </p>
+            <p className="text-xs font-medium text-gray-500">Risk Factors</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {patient.riskFactors && patient.riskFactors.length > 0 ? (
+                patient.riskFactors.map((risk, idx) => (
+                  <span
+                    key={idx}
+                    className="rounded bg-red-100 px-2 py-1 text-xs text-red-800"
+                  >
+                    {risk.replace(/_/g, " ")}
+                  </span>
+                ))
+              ) : (
+                <p className="text-sm text-gray-400">None listed</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -387,7 +425,7 @@ export default function PatientDetailPage() {
       </div>
 
       {/* Anomaly History */}
-      <div>
+      <div id="anomaly-history">
         <h2 className="mb-4 text-lg font-semibold text-gray-900">
           Anomaly History
         </h2>
@@ -438,6 +476,14 @@ export default function PatientDetailPage() {
                     </div>
                   </div>
                 </div>
+                {!anomaly.acknowledged && (
+                  <button
+                    onClick={() => handleAcknowledge(anomaly._id)}
+                    className="mt-4 w-full rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+                  >
+                    Acknowledge Alert
+                  </button>
+                )}
               </div>
             ))}
           </div>

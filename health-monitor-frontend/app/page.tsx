@@ -1,15 +1,20 @@
 "use client";
 
-import SummaryCard from "@/components/dashboard/SummaryCard";
+import AlertModal from "@/components/dashboard/AlertModal";
+import PatientCard from "@/components/dashboard/PatientCard";
+import PatientTable from "@/components/dashboard/PatientTable";
+import SummaryCards from "@/components/dashboard/SummaryCards";
 import { acknowledgeAnomaly, getDashboardSummary } from "@/lib/api";
 import { initializeSocket } from "@/lib/socket";
 import { DashboardSummary } from "@/lib/types";
+import { UsersIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<string | null>(null);
 
   // Fetch dashboard data
   const fetchData = async () => {
@@ -72,9 +77,18 @@ export default function DashboardPage() {
     try {
       await acknowledgeAnomaly(anomalyId);
       fetchData(); // Refresh dashboard
+      setSelectedPatient(null); // Close modal after acknowledgement
     } catch (err) {
       console.error("Failed to acknowledge anomaly:", err);
     }
+  };
+
+  const getPatientAnomalies = (patientId: string) => {
+    return (
+      summary?.recentAnomalies.filter(
+        (a) => a.patientId === patientId && !a.acknowledged
+      ) || []
+    );
   };
 
   if (loading) {
@@ -103,172 +117,74 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Compact Summary Cards */}
-      <div className="grid gap-3 sm:grid-cols-4">
-        <SummaryCard
-          title="Total Patients"
-          value={summary.summary.totalPatients}
-          icon="👥"
-          severity="normal"
-        />
-        <SummaryCard
-          title="Active Alerts"
-          value={summary.summary.activeAnomalies}
-          icon="🔔"
-          severity={summary.summary.activeAnomalies > 0 ? "warning" : "normal"}
-        />
-        <SummaryCard
-          title="Critical Alerts"
-          value={summary.summary.criticalCount}
-          icon="🚨"
-          severity={summary.summary.criticalCount > 0 ? "critical" : "normal"}
-        />
-        <SummaryCard
-          title="Warnings"
-          value={summary.summary.warningCount}
-          icon="⚠️"
-          severity={summary.summary.warningCount > 0 ? "warning" : "normal"}
-        />
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <SummaryCards
+        totalPatients={summary.summary.totalPatients}
+        activeAnomalies={summary.summary.activeAnomalies}
+        criticalCount={summary.summary.criticalCount}
+        warningCount={summary.summary.warningCount}
+      />
+
+      {/* Patient Cards Grid */}
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Patient Overview
+          </h2>
+          <span className="text-sm text-gray-500">
+            {summary.latestVitals.length} patients
+          </span>
+        </div>
+
+        {/* Patient Table - Desktop / Mobile Cards */}
+        {/* Mobile Card View */}
+        <div className="block lg:hidden space-y-4">
+          {summary.latestVitals.map((record) => (
+            <PatientCard
+              key={record._id}
+              record={record}
+              patientAnomalies={getPatientAnomalies(record.patientId)}
+              onAlertClick={setSelectedPatient}
+              onViewDetails={(patientId) =>
+                (window.location.href = `/patients/${patientId}`)
+              }
+            />
+          ))}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block">
+          <PatientTable
+            patients={summary.latestVitals}
+            getPatientAnomalies={getPatientAnomalies}
+            onAlertClick={setSelectedPatient}
+            onViewDetails={(patientId) =>
+              (window.location.href = `/patients/${patientId}`)
+            }
+          />
+        </div>
+
+        {/* Empty State */}
+        {summary.latestVitals.length === 0 && (
+          <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
+            <UsersIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <p className="mt-2 text-sm text-gray-500">
+              No patient data available
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* Full Width Table */}
-      <div className="w-full">
-        {/* Patients Table */}
-        <div className="w-full">
-          <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-            <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  All Patients
-                </h2>
-                <span className="text-sm text-gray-500">
-                  {summary.latestVitals.length} active
-                </span>
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Patient
-                    </th>
-                    <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Heart Rate
-                    </th>
-                    <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Blood Pressure
-                    </th>
-                    <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Temp
-                    </th>
-                    <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      SpO₂
-                    </th>
-                    <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Last Update
-                    </th>
-                    <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Status
-                    </th>
-                    <th className="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
-                  {summary.latestVitals.map((record) => {
-                    const hasActiveAlert = summary.recentAnomalies.some(
-                      (a) => a.patientId === record.patientId && !a.acknowledged
-                    );
-                    return (
-                      <tr
-                        key={record.patientId}
-                        className="hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() =>
-                          (window.location.href = `/patients/${record.patientId}`)
-                        }
-                      >
-                        <td className="whitespace-nowrap px-4 py-4">
-                          <div className="flex items-center">
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {record.patientName}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                ID: {record.patientId}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm">
-                          <span className="font-medium text-gray-900">
-                            {record.heartRate || "N/A"}
-                          </span>
-                          <span className="ml-1 text-gray-500">bpm</span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm">
-                          <span className="font-medium text-gray-900">
-                            {record.bloodPressure || "N/A"}
-                          </span>
-                          <span className="ml-1 text-gray-500">mmHg</span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm">
-                          <span className="font-medium text-gray-900">
-                            {typeof record.bodyTemperature === "number"
-                              ? record.bodyTemperature.toFixed(1)
-                              : "N/A"}
-                          </span>
-                          <span className="ml-1 text-gray-500">°C</span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm">
-                          <span className="font-medium text-gray-900">
-                            {record.spo2 || "N/A"}
-                          </span>
-                          <span className="ml-1 text-gray-500">%</span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
-                          {new Date(record.recordedAt).toLocaleTimeString()}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm">
-                          {hasActiveAlert ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
-                              <span className="h-2 w-2 animate-pulse rounded-full bg-red-500"></span>
-                              Alert
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
-                              <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                              Normal
-                            </span>
-                          )}
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-4 text-sm">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              window.location.href = `/patients/${record.patientId}`;
-                            }}
-                            className="text-blue-600 hover:text-blue-800 font-medium"
-                          >
-                            View Details →
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            {summary.latestVitals.length === 0 && (
-              <div className="px-6 py-12 text-center">
-                <p className="text-sm text-gray-500">No active patients</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Alert Modal */}
+      <AlertModal
+        selectedPatient={selectedPatient}
+        patientAnomalies={
+          selectedPatient ? getPatientAnomalies(selectedPatient) : []
+        }
+        onClose={() => setSelectedPatient(null)}
+        onAcknowledge={handleAcknowledge}
+      />
     </div>
   );
 }

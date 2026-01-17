@@ -1,96 +1,121 @@
-// Patient Card Component
 "use client";
 
-import { Patient, VitalSigns } from "@/lib/types";
-import { formatTime } from "@/lib/utils";
-import Link from "next/link";
+import { Anomaly, HealthRecord } from "@/lib/types";
+import {
+  ArrowTrendingUpIcon,
+  BeakerIcon,
+  ExclamationTriangleIcon,
+  FireIcon,
+  HeartIcon,
+  ShieldExclamationIcon,
+} from "@heroicons/react/24/outline";
 
 interface PatientCardProps {
-  patient: Patient;
-  vitals?: VitalSigns;
-  lastUpdate?: string;
-  hasActiveAlert?: boolean;
+  record: HealthRecord;
+  patientAnomalies: Anomaly[];
+  onAlertClick: (patientId: string) => void;
+  onViewDetails: (patientId: string) => void;
 }
 
 export default function PatientCard({
-  patient,
-  vitals,
-  lastUpdate,
-  hasActiveAlert,
+  record,
+  patientAnomalies,
+  onAlertClick,
+  onViewDetails,
 }: PatientCardProps) {
-  const getStatus = () => {
-    if (hasActiveAlert) return { label: "Alert", color: "bg-red-500" };
-    if (!vitals) return { label: "Offline", color: "bg-gray-400" };
-    return { label: "Normal", color: "bg-green-500" };
-  };
-
-  const status = getStatus();
+  const hasAlert = patientAnomalies.length > 0;
+  const criticalAlert = patientAnomalies.find((a) => a.severity === "critical");
 
   return (
-    <Link href={`/patients/${patient.patientId}`}>
-      <div className="group cursor-pointer rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-blue-500 hover:shadow-md">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {patient.name}
-              </h3>
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-white ${status.color}`}
-              >
-                <span className="h-2 w-2 animate-pulse rounded-full bg-white"></span>
-                {status.label}
-              </span>
-            </div>
-            <p className="mt-1 text-sm text-gray-500">
-              {patient.age}y • {patient.gender} • ID: {patient.patientId}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-1">
-              {patient.conditions.slice(0, 2).map((condition, idx) => (
-                <span
-                  key={idx}
-                  className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
-                >
-                  {condition}
-                </span>
-              ))}
-            </div>
-          </div>
+    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900">
+            {record.patientName || `Patient ${record.patientId}`}
+          </h3>
+          <p className="text-xs text-gray-500">ID: {record.patientId}</p>
         </div>
-
-        {vitals && (
-          <div className="mt-4 grid grid-cols-3 gap-3 border-t border-gray-100 pt-4">
-            <div>
-              <p className="text-xs text-gray-500">Heart Rate</p>
-              <p className="mt-1 font-semibold text-gray-900">
-                {vitals.heartRate || "N/A"} bpm
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">BP</p>
-              <p className="mt-1 font-semibold text-gray-900">
-                {typeof vitals.bloodPressure === "string"
-                  ? vitals.bloodPressure
-                  : `${vitals.bloodPressure?.systolic || "N/A"}/${
-                      vitals.bloodPressure?.diastolic || "N/A"
-                    }`}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500">SpO₂</p>
-              <p className="mt-1 font-semibold text-gray-900">
-                {vitals.spo2 || "N/A"}%
-              </p>
-            </div>
-          </div>
-        )}
-
-        {lastUpdate && (
-          <p className="mt-3 text-xs text-gray-400">
-            Last update: {formatTime(lastUpdate)}
-          </p>
+        {hasAlert ? (
+          <button
+            onClick={() => onAlertClick(record.patientId)}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
+              criticalAlert
+                ? "bg-red-100 text-red-700"
+                : "bg-amber-100 text-amber-700"
+            }`}
+          >
+            {criticalAlert ? (
+              <ShieldExclamationIcon className="h-4 w-4" />
+            ) : (
+              <ExclamationTriangleIcon className="h-4 w-4" />
+            )}
+            <span className="rounded-full bg-white px-1.5 py-0.5 text-xs font-bold">
+              {patientAnomalies.length}
+            </span>
+          </button>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-green-100 px-2.5 py-1.5 text-xs font-medium text-green-700">
+            <div className="h-2 w-2 rounded-full bg-green-500"></div>
+            Normal
+          </span>
         )}
       </div>
-    </Link>
+
+      {/* Vitals Grid */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+            <HeartIcon className="h-3.5 w-3.5" />
+            Heart Rate
+          </div>
+          <p className="text-sm font-semibold text-gray-900">
+            {record.heartRate || "--"} {record.heartRate && "bpm"}
+          </p>
+        </div>
+        <div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+            <ArrowTrendingUpIcon className="h-3.5 w-3.5" />
+            Blood Pressure
+          </div>
+          <p className="text-sm font-semibold text-gray-900">
+            {record.bloodPressure || "--"}
+          </p>
+        </div>
+        <div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+            <FireIcon className="h-3.5 w-3.5" />
+            Temperature
+          </div>
+          <p className="text-sm font-semibold text-gray-900">
+            {record.bodyTemperature
+              ? `${record.bodyTemperature.toFixed(1)}°C`
+              : "--"}
+          </p>
+        </div>
+        <div>
+          <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+            <BeakerIcon className="h-3.5 w-3.5" />
+            SpO₂
+          </div>
+          <p className="text-sm font-semibold text-gray-900">
+            {record.spo2 || "--"} {record.spo2 && "%"}
+          </p>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+        <p className="text-xs text-gray-500">
+          {new Date(record.recordedAt).toLocaleString()}
+        </p>
+        <button
+          onClick={() => onViewDetails(record.patientId)}
+          className="text-xs font-medium text-blue-600 hover:text-blue-800"
+        >
+          View Details →
+        </button>
+      </div>
+    </div>
   );
 }

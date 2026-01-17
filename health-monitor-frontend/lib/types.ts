@@ -1,68 +1,59 @@
 // TypeScript types for the health monitoring system
+// Synced with backend MongoDB schemas
 
 export interface Patient {
+    _id?: string;
     patientId: string;
     name: string;
-    age: number;
-    gender: 'M' | 'F';
+    age?: number;
     conditions: string[];
-    contactInfo: {
-        phone: string;
-        email: string;
-        emergencyContact: string;
-    };
-    thresholds: {
-        heartRate: { min: number; max: number };
-        systolic: { min: number; max: number };
-        diastolic: { min: number; max: number };
-        temperature: { min: number; max: number };
-        spo2: { min: number };
-        bloodGlucose: { min: number; max: number };
-    };
+    medications: string[];
+    riskFactors: string[];
+    baselineVitals?: any;
+    alertThresholds?: any;
     isActive: boolean;
-}
-
-export interface VitalSigns {
-    heartRate: number;
-    bloodPressure: {
-        systolic: number;
-        diastolic: number;
-    };
-    temperature: number;
-    spo2: number;
-    bloodGlucose: number;
-    respiratoryRate: number;
-    motionLevel: number;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface HealthRecord {
     _id: string;
     patientId: string;
-    vitals: VitalSigns;
+    patientName?: string; // Optional field from backend
+    heartRate?: number;
+    bloodPressure?: string; // Format: "120/80"
+    spo2?: number;
+    bodyTemperature?: number;
+    motionLevel?: number;
+    fallRiskScore?: number;
+    sensorId?: string;
+    httpbinResponse?: any;
     recordedAt: string;
-    anomalyScore?: number;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface Anomaly {
     _id: string;
     patientId: string;
-    patientName: string;
-    detectedAt: string;
-    severity: 'critical' | 'warning';
-    anomalyScore: number;
+    patientName?: string; // Populated from Patient
+    severity: 'normal' | 'warning' | 'critical';
     alerts: Alert[];
+    anomalyScore?: number;
+    recordId?: string;
     acknowledged: boolean;
-    acknowledgedAt?: string;
     acknowledgedBy?: string;
+    acknowledgedAt?: string;
+    detectedAt: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface Alert {
     type: string;
-    metric: string;
-    value: number;
-    threshold: number | string;
-    severity: 'critical' | 'warning';
+    category?: string;
     message: string;
+    value?: any;
 }
 
 export interface DashboardSummary {
@@ -73,17 +64,18 @@ export interface DashboardSummary {
         warningCount: number;
     };
     recentAnomalies: Anomaly[];
-    latestVitals: Array<any>;
+    latestVitals: HealthRecord[];
     timestamp: string;
 }
-export interface AlertHistory {
-    date: string;
-    alerts: Array<{
-        time: string;
-        patientId: string;
-        patientName: string;
-        severity: 'critical' | 'warning';
-        message: string;
-        acknowledged: boolean;
-    }>;
+
+export interface AlertLog {
+    _id: string;
+    patientId: string;
+    alertType?: string;
+    message?: string;
+    severity?: string;
+    actionTaken?: string;
+    timestamp: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
