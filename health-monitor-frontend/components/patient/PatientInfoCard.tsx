@@ -21,8 +21,7 @@ export default function PatientInfoCard({
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{patient.name}</h1>
           <p className="mt-1 text-gray-600">
-            {patient.age} years • {patient.gender === "M" ? "Male" : "Female"} •
-            ID: {patient.patientId}
+            {patient.age} years • ID: {patient.patientId}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {patient.conditions?.map((condition, idx) => (

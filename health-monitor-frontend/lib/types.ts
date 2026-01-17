@@ -1,16 +1,37 @@
 // TypeScript types for the health monitoring system
 // Synced with backend MongoDB schemas
 
+export interface VitalRange {
+    min: number;
+    max: number;
+    normal?: number;
+}
+
+export interface BaselineVitals {
+    hr?: VitalRange;
+    systolic?: VitalRange;
+    diastolic?: VitalRange;
+    spo2?: VitalRange;
+    temp?: VitalRange;
+}
+
+export interface AlertThresholds {
+    hrCritical?: [number, number];
+    bpCritical?: [number, number];
+    spo2Critical?: number;
+}
+
 export interface Patient {
     _id?: string;
     patientId: string;
     name: string;
+    gender?: string;
     age?: number;
     conditions: string[];
     medications: string[];
     riskFactors: string[];
-    baselineVitals?: any;
-    alertThresholds?: any;
+    baselineVitals?: BaselineVitals;
+    alertThresholds?: AlertThresholds;
     isActive: boolean;
     createdAt?: string;
     updatedAt?: string;
