@@ -23,8 +23,12 @@ export default function PatientCard({
   onAlertClick,
   onViewDetails,
 }: PatientCardProps) {
+  console.log(patientAnomalies);
+
   const hasAlert = patientAnomalies.length > 0;
-  const criticalAlert = patientAnomalies.find((a) => a.severity === "critical");
+  const activeAnomalies = patientAnomalies.filter((a) => !a.acknowledged);
+  const hasActiveAlert = activeAnomalies.length > 0;
+  const criticalAlert = activeAnomalies.find((a) => a.severity === "critical");
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
@@ -40,19 +44,28 @@ export default function PatientCard({
           <button
             onClick={() => onAlertClick(record.patientId)}
             className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-all ${
-              criticalAlert
-                ? "bg-red-100 text-red-700"
-                : "bg-amber-100 text-amber-700"
+              hasActiveAlert
+                ? criticalAlert
+                  ? "bg-red-100 text-red-700"
+                  : "bg-amber-100 text-amber-700"
+                : "bg-gray-100 text-gray-700"
             }`}
           >
-            {criticalAlert ? (
-              <ShieldExclamationIcon className="h-4 w-4" />
+            {hasActiveAlert ? (
+              criticalAlert ? (
+                <ShieldExclamationIcon className="h-4 w-4" />
+              ) : (
+                <ExclamationTriangleIcon className="h-4 w-4" />
+              )
             ) : (
-              <ExclamationTriangleIcon className="h-4 w-4" />
+              <div className="h-2 w-2 rounded-full bg-gray-500"></div>
             )}
             <span className="rounded-full bg-white px-1.5 py-0.5 text-xs font-bold">
-              {patientAnomalies.length}
+              {hasActiveAlert
+                ? activeAnomalies.length
+                : patientAnomalies.length}
             </span>
+            {!hasActiveAlert && <span className="text-[10px]">Mon.</span>}
           </button>
         ) : (
           <span className="inline-flex items-center gap-1.5 rounded-lg bg-green-100 px-2.5 py-1.5 text-xs font-medium text-green-700">

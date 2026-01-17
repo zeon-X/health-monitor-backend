@@ -20,7 +20,9 @@ export default function PatientTableRow({
   onViewDetails,
 }: PatientTableRowProps) {
   const hasAlert = patientAnomalies.length > 0;
-  const criticalAlert = patientAnomalies.find((a) => a.severity === "critical");
+  const activeAnomalies = patientAnomalies.filter((a) => !a.acknowledged);
+  const hasActiveAlert = activeAnomalies.length > 0;
+  const criticalAlert = activeAnomalies.find((a) => a.severity === "critical");
 
   return (
     <tr className="hover:bg-gray-50 transition-colors">
@@ -68,19 +70,28 @@ export default function PatientTableRow({
           <button
             onClick={() => onAlertClick(record.patientId)}
             className={`relative inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:shadow-md ${
-              criticalAlert
-                ? "bg-red-100 text-red-700 hover:bg-red-200"
-                : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+              hasActiveAlert
+                ? criticalAlert
+                  ? "bg-red-100 text-red-700 hover:bg-red-200"
+                  : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            {criticalAlert ? (
-              <ShieldExclamationIcon className="h-5 w-5" />
+            {hasActiveAlert ? (
+              criticalAlert ? (
+                <ShieldExclamationIcon className="h-5 w-5" />
+              ) : (
+                <ExclamationTriangleIcon className="h-5 w-5" />
+              )
             ) : (
-              <ExclamationTriangleIcon className="h-5 w-5" />
+              <div className="h-2 w-2 rounded-full bg-gray-500"></div>
             )}
-            <span className="flex items-center justify-center rounded-full bg-white px-2 py-0.5 text-xs font-bold">
-              {patientAnomalies.length}
+            <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold">
+              {hasActiveAlert
+                ? activeAnomalies.length
+                : patientAnomalies.length}
             </span>
+            {!hasActiveAlert && <span className="text-xs">Monitored</span>}
           </button>
         ) : (
           <span className="inline-flex items-center gap-2 rounded-lg bg-green-100 px-3 py-2 text-sm font-medium text-green-700">
